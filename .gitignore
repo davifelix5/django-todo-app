@@ -1,0 +1,15 @@
+__pycache__
+.mypy_cache
+venv
+*.sqlite3
+
+# dependencies
+todo-react/node_modules
+
+# production
+todo-react/build
+
+# logs
+todo-react/npm-debug.log*
+todo-react/yarn-debug.log*
+todo-react/yarn-error.log*

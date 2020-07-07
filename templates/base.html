@@ -1,0 +1,18 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    {% include 'partials/_head.html' %}
+
+    <title>{% block extratitle %}{% endblock extratitle %}Todo App</title>
+
+    {% block extrastyles %}
+    {% endblock extrastyles %}
+</head>
+<body>
+    {% block content %}
+    {% endblock content %}
+
+    {% include 'partials/_scripts.html' %}
+</body>
+</html>
