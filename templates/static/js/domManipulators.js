@@ -25,10 +25,51 @@ export const buildTaskItem = task => {
     deleteTask.style.flex = 1
     const deleteButton = document.createElement('button')
     deleteButton.classList = 'btn btn-sm btn-outline-danger delete'
-    deleteButton.innerText = 'x'
+    deleteButton.innerHTML = '&times;'
     deleteTask.append(deleteButton)
     taskContainer.append(deleteTask)
 
     return taskContainer
+
+}
+
+export const buildEditForm = (title, taskId) => {
+    const form = document.createElement('form')
+    form.id = `data-row-${taskId}`
+    form.classList.add('task-wrapper')
+    form.classList.add('flex-wrapper')
+
+    const input = document.createElement('input')
+    input.type = 'text'
+    input.name = 'title'
+    input.value = title
+    input.classList.add('edit-input')
+
+    const confirmDiv = document.createElement('div')
+    const confirmBtn = document.createElement('button')
+    confirmDiv.style.flex = 1
+    confirmBtn.classList.add('btn')
+    confirmBtn.classList.add('btn-sm')
+    confirmBtn.classList.add('btn-outline-success')
+    confirmBtn.type = 'submit'
+    confirmBtn.innerHTML = '&#10003;'
+    confirmDiv.append(confirmBtn)
+
+    const cancelDiv = document.createElement('div')
+    cancelDiv.style.flex = 1
+    const cancelBtn = document.createElement('button')
+    cancelBtn.classList.add('btn')
+    cancelBtn.classList.add('btn-sm')
+    cancelBtn.classList.add('btn-outline-danger')
+    cancelBtn.classList.add('cancel')
+    cancelBtn.type = 'button'
+    cancelBtn.innerHTML = '&times;'
+    cancelDiv.append(cancelBtn)
+
+    form.append(input)
+    form.append(confirmDiv)
+    form.append(cancelDiv)
+
+    return form
 
 }

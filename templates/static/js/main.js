@@ -1,8 +1,7 @@
-import { buildTaskItem } from './domManipulators.js'
+import { buildTaskItem, buildEditForm } from './domManipulators.js'
 import { getToken, getJsonHeaders } from './helpers.js'
 
 const baseUrl = 'http://127.0.0.1:8000/api/'
-let editing = null
 
 const buildList = () => {
 	const listWrapper = document.getElementById('list-wrapper')
@@ -21,10 +20,7 @@ const buildList = () => {
 				const editButtons = taskItem.querySelectorAll('.edit')
 				editButtons.forEach(btn => {
 					btn.addEventListener('click', () => {
-						editing = task.id
-						const inputElement = document.getElementById('title')
-						inputElement.value = task.title
-						inputElement.focus()
+						handleEdit(task.id)
 					})
 				})
 
@@ -47,25 +43,23 @@ const buildList = () => {
 buildList()
 
 const form = document.getElementById('form')
-const createUrl = baseUrl + 'create-task/'
 
-const handleFormSubmit = async event => {
+const handleCreateTask = async event => {
+	const url = baseUrl + 'create-task/'
 	event.preventDefault()
 
-	const method = editing ? 'PUT' : 'POST'
+	const method = 'POST'
 	const formData = new FormData(event.target)
 	const data = Object.fromEntries(formData)
 	const body = JSON.stringify(data)
-	const url = editing ? baseUrl + `update-task/${editing}` : createUrl
 
 	await fetch(url, { method, headers: getJsonHeaders(), body })
 
 	buildList()
 	form.reset()
 
-	editing = null
 }
-form.addEventListener('submit', handleFormSubmit)
+form.addEventListener('submit', handleCreateTask)
 
 const deleteItem = async id => {
 	const deleteUrl = baseUrl + `delete-task/${id}`
@@ -77,6 +71,47 @@ const deleteItem = async id => {
 		}
 	})
 	buildList()
+}
+
+const handleEdit = id => {
+	const element = document.getElementById(`data-row-${id}`)
+	const taskTitle = element.querySelector('.title').innerHTML
+
+	const editForm = buildEditForm(taskTitle, id)
+	const input = editForm.querySelector('input')
+	const cancelBtn = editForm.querySelector('button.cancel')
+
+	const editItem = async data => {
+		const url = baseUrl + `update-task/${id}`
+		const body = JSON.stringify(data)
+		await fetch(url, { method: 'PUT', headers: getJsonHeaders(), body })
+		buildList()
+	}
+
+	const handleSubmit = async e => {
+		e.preventDefault()
+		const data = Object.fromEntries(new FormData(form))
+		editItem(data)
+	}
+
+	const handleInputBlur = e => {
+		const form = e.target.parentElement
+		const data = Object.fromEntries(new FormData(form))
+		editItem(data)
+	}
+
+	const handleCancel = () => {
+		editItem({ title: taskTitle })
+	}
+
+	editForm.onsubmit = handleSubmit
+
+	input.onblur = handleInputBlur
+
+	cancelBtn.onclick = handleCancel
+
+	element.parentElement.replaceChild(editForm, element)
+	input.focus()
 }
 
 const toogleComplete = async task => {
