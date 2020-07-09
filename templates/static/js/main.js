@@ -2,45 +2,51 @@ import { buildTaskItem, buildEditForm } from './domManipulators.js'
 import { getToken, getJsonHeaders } from './helpers.js'
 
 const baseUrl = 'http://127.0.0.1:8000/api/'
+const listWrapper = document.getElementById('list-wrapper')
+const cachedTasks = []
+load()
 
-const buildList = () => {
-	const listWrapper = document.getElementById('list-wrapper')
-
+function load() {
 	const listUrl = baseUrl + 'list-tasks/'
 	fetch(listUrl)
 		.then(res => res.json())
 		.then(data => {
-			listWrapper.innerHTML = ''
-			data.forEach(task => {
-				const taskItem = buildTaskItem(task)
-				listWrapper.append(taskItem)
-
-				// Adding event listeners
-
-				const editButtons = taskItem.querySelectorAll('.edit')
-				editButtons.forEach(btn => {
-					btn.addEventListener('click', () => {
-						handleEdit(task.id)
-					})
-				})
-
-				const deleteButtons = taskItem.querySelectorAll('.delete')
-				deleteButtons.forEach(btn => {
-					btn.addEventListener('click', () => {
-						const confirm = window.confirm('Tem certeza que deseja deletar esse item?')
-						if (confirm) deleteItem(task.id)
-					})
-				})
-
-				const titles = taskItem.querySelectorAll('.title')
-				titles.forEach(title => {
-					title.addEventListener('click', () => toogleComplete(task))
-				})
-
-			})
+			data.forEach(task => cachedTasks.push(task))
+			data.forEach(build)
 		})
 }
-buildList()
+
+const build = task => {
+	const taskItem = buildTaskItem(task)
+	listWrapper.append(taskItem)
+
+	// Adding event listeners
+
+	const editButtons = taskItem.querySelectorAll('.edit')
+	editButtons.forEach(btn => {
+		btn.addEventListener('click', () => {
+			handleEdit(task.id)
+		})
+	})
+
+	const deleteButtons = taskItem.querySelectorAll('.delete')
+	deleteButtons.forEach(btn => {
+		btn.addEventListener('click', () => {
+			const confirm = window.confirm('Tem certeza que deseja deletar esse item?')
+			if (confirm) deleteItem(task.id)
+		})
+	})
+
+	const titles = taskItem.querySelectorAll('.title')
+	titles.forEach(title => {
+		title.addEventListener('click', () => toogleComplete(task))
+	})
+}
+
+const refreshTasks = tasks => {
+	listWrapper.innerHTML = ''
+	cachedTasks.forEach(build)
+}
 
 const form = document.getElementById('form')
 
@@ -55,7 +61,9 @@ const handleCreateTask = async event => {
 
 	await fetch(url, { method, headers: getJsonHeaders(), body })
 
-	buildList()
+	cachedTasks.push(data)
+
+	refreshTasks()
 	form.reset()
 
 }
@@ -70,7 +78,8 @@ const deleteItem = async id => {
 			'X-CSRFToken': getToken('csrftoken')
 		}
 	})
-	buildList()
+	cachedTasks.filter(task => task.id !== id)
+	refreshTasks()
 }
 
 const handleEdit = id => {
@@ -85,12 +94,15 @@ const handleEdit = id => {
 		const url = baseUrl + `update-task/${id}`
 		const body = JSON.stringify(data)
 		await fetch(url, { method: 'PUT', headers: getJsonHeaders(), body })
-		buildList()
+		cachedTasks.forEach(task => {
+			if (task.id == id) task.title = data.title
+		})
+		refreshTasks()
 	}
 
 	const handleSubmit = async e => {
 		e.preventDefault()
-		const data = Object.fromEntries(new FormData(form))
+		const data = Object.fromEntries(new FormData(e.target))
 		editItem(data)
 	}
 
@@ -101,12 +113,12 @@ const handleEdit = id => {
 	}
 
 	const handleCancel = () => {
-		editItem({ title: taskTitle })
+		editItem({ title: taskTitle, id })
 	}
 
 	editForm.onsubmit = handleSubmit
 
-	input.onblur = handleInputBlur
+	// input.onblur = handleInputBlur
 
 	cancelBtn.onclick = handleCancel
 
@@ -124,5 +136,8 @@ const toogleComplete = async task => {
 		headers: getJsonHeaders(),
 		body
 	})
-	buildList()
+	cachedTasks.map(item => {
+		return item.id === task.id ? { ...item, completed: !item.completed } : item
+	})
+	refreshTasks()
 }
