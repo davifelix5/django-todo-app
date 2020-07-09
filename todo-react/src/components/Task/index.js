@@ -3,7 +3,7 @@ import { apiPut, apiDelete } from '../../services/api'
 
 import './styles.css'
 
-const Task = ({ task, fetchTasks }) => {
+const Task = ({ task, setTasks, tasks }) => {
 
     const completedClass = task.completed ? 'completed' : ''
 
@@ -30,7 +30,10 @@ const Task = ({ task, fetchTasks }) => {
         apiPut(newItem.id, newItem)
             .then(() => {
                 setEditing(false)
-                fetchTasks()
+                setTasks(tasks.map(task => {
+                    if (task.id === newItem.id) return newItem
+                    return task
+                }))
             })
     }
 
@@ -39,14 +42,17 @@ const Task = ({ task, fetchTasks }) => {
         if (!confirm) return
         apiDelete(id)
             .then(() => {
-                fetchTasks()
+                setTasks(tasks.filter(task => task.id !== id))
             })
     }
 
     const handleComplete = task => {
         apiPut(task.id, { ...task, completed: !task.completed })
             .then(() => {
-                fetchTasks()
+                setTasks(tasks.map(item => {
+                    if (item.id === task.id) return { ...item, completed: !item.completed }
+                    return item
+                }))
             })
     }
 
@@ -56,7 +62,7 @@ const Task = ({ task, fetchTasks }) => {
                 <form onSubmit={handleSubmit} method="POST" className="formEdit task-wrapper flex-wrapper">
                     <input ref={inputRef} type="text" value={newItem.title} onChange={handleChange} />
                     <div style={{ flex: 1 }}>
-                        <button onClick={() => handleEdit(task)} className="btn btn-sm btn-outline-success edit">&#10003;</button>
+                        <button className="btn btn-sm btn-outline-success edit">&#10003;</button>
                     </div>
                     <div style={{ flex: 1 }}>
                         <button onClick={() => setEditing(false)} className="btn btn-sm btn-outline-danger delete">x</button>
