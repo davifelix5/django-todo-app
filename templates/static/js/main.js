@@ -118,7 +118,7 @@ const handleEdit = id => {
 
 	editForm.onsubmit = handleSubmit
 
-	// input.onblur = handleInputBlur
+	input.onblur = handleInputBlur
 
 	cancelBtn.onclick = handleCancel
 

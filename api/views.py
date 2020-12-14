@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Task
@@ -28,7 +30,7 @@ def task_list(request):
 
 @api_view(['GET'])
 def task_detail(request, pk):
-    task = Task.objects.get(id=pk)
+    task = get_object_or_404(Task, id=pk)
     serializer = TaskSerializer(task, many=False)
     return Response(serializer.data)
 
@@ -40,30 +42,28 @@ def task_create(request):
     if serializer.is_valid():
         serializer.save()
     else:
-        return Response('Invalid Data')
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     return Response(serializer.data)
 
 
 @api_view(['PUT'])
 def task_update(request, pk):
-    task = Task.objects.get(id=pk)
+    task = get_object_or_404(Task, id=pk)
     serializer = TaskSerializer(instance=task, data=request.data)
 
     if serializer.is_valid():
         serializer.save()
     else:
-        return Response('Invalid data')
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     return Response(serializer.data)
 
 
 @api_view(['DELETE'])
 def task_delete(request, pk):
-    task = Task.objects.get(id=pk)
-    if task:
-        task.delete()
-    else:
-        return Response('This task does not exist')
+    task = get_object_or_404(Task, id=pk)
+    serialized_task = TaskSerializer(task)
+    task.delete()
 
-    return Response('Task deleted')
+    return Response(serialized_task.data)
