@@ -41,10 +41,20 @@ function App() {
 
       <div id="task-container">
         <div id="form-wrapper">
-          <TaskForm title={activeItem.title} titleChange={handleChange} handleSubmit={handleSubmitCreate} />
+          <TaskForm title={activeItem.title} 
+            titleChange={handleChange} 
+            handleSubmit={handleSubmitCreate} 
+          />
         </div>
         <div className="list-wrapper">
-          {tasks.map(task => <Task key={task.id} task={task} tasks={tasks} setTasks={setTasks} />)}
+          {tasks.map(task => 
+            <Task 
+              key={task.id} 
+              task={task} 
+              tasks={tasks} 
+              setTasks={setTasks} 
+            />
+          )}
         </div>
       </div>
 
