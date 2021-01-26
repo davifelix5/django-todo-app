@@ -3,7 +3,7 @@ import { getToken, getJsonHeaders } from './helpers.js'
 
 const baseUrl = 'http://127.0.0.1:8000/api/'
 const listWrapper = document.getElementById('list-wrapper')
-const cachedTasks = []
+let cachedTasks = []
 load()
 
 function load() {
@@ -43,7 +43,7 @@ const build = task => {
 	})
 }
 
-const refreshTasks = tasks => {
+const refreshTasks = () => {
 	listWrapper.innerHTML = ''
 	cachedTasks.forEach(build)
 }
@@ -59,9 +59,8 @@ const handleCreateTask = async event => {
 	const data = Object.fromEntries(formData)
 	const body = JSON.stringify(data)
 
-	await fetch(url, { method, headers: getJsonHeaders(), body })
-
-	cachedTasks.push(data)
+	const {id} = await fetch(url, { method, headers: getJsonHeaders(), body }).then(res => res.json())
+	cachedTasks.unshift({...data, id})
 
 	refreshTasks()
 	form.reset()
@@ -78,7 +77,7 @@ const deleteItem = async id => {
 			'X-CSRFToken': getToken('csrftoken')
 		}
 	})
-	cachedTasks.filter(task => task.id !== id)
+	cachedTasks = cachedTasks.filter(task => task.id !== id)
 	refreshTasks()
 }
 
@@ -102,8 +101,7 @@ const handleEdit = id => {
 
 	const handleSubmit = async e => {
 		e.preventDefault()
-		const data = Object.fromEntries(new FormData(e.target))
-		editItem(data)
+		e.target.querySelector('input').blur()
 	}
 
 	const handleInputBlur = e => {
@@ -118,7 +116,7 @@ const handleEdit = id => {
 
 	editForm.onsubmit = handleSubmit
 
-	// input.onblur = handleInputBlur
+	input.onblur = handleInputBlur
 
 	cancelBtn.onclick = handleCancel
 
